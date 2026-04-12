@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
-import DOMPurify from 'isomorphic-dompurify'
 
 interface ProductAccordionProps {
   description?: string | null
@@ -51,10 +50,7 @@ export default function ProductAccordion({ description, details }: ProductAccord
     <div className="border-t">
       {description && (
         <AccordionItem title="Description" defaultOpen>
-          <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(description, {
-            ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'b', 'i', 'ul', 'ol', 'li', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'div', 'blockquote'],
-            ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
-          }) }} />
+          <div dangerouslySetInnerHTML={{ __html: description }} />
         </AccordionItem>
       )}
 
