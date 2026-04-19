@@ -5,7 +5,7 @@ export const revalidate = 3600 // ISR: revalidate every hour
 import { medusaServerClient } from '@/lib/medusa-client'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Truck, RotateCcw, Shield, ChevronRight } from 'lucide-react'
+import { ChevronRight, Flame, Scissors, Ruler, Award } from 'lucide-react'
 import ProductActions from '@/components/product/product-actions'
 import ProductAccordion from '@/components/product/product-accordion'
 import { ProductViewTracker } from '@/components/product/product-view-tracker'
@@ -26,6 +26,30 @@ async function getProduct(handle: string) {
     return response.products?.[0] || null
   } catch (error) {
     console.error('Error fetching product:', error)
+    return null
+  }
+}
+
+async function getCompanionProduct(currentProductId: string) {
+  try {
+    const regionsResponse = await medusaServerClient.store.region.list()
+    const regionId = regionsResponse.regions[0]?.id
+    if (!regionId) return null
+
+    const response = await medusaServerClient.store.product.list({
+      region_id: regionId,
+      fields: '*variants.calculated_price',
+      limit: 10,
+    })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const others = (response.products || []).filter((p: any) => p.id !== currentProductId)
+    // Prefer a product whose title contains "Crewneck" for a clear
+    // complementary pairing when available.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const preferred = others.find((p: any) => /crewneck|classic/i.test(p.title))
+    return preferred || others[0] || null
+  } catch (error) {
+    console.error('Error fetching companion:', error)
     return null
   }
 }
@@ -83,6 +107,13 @@ export async function generateMetadata({
   }
 }
 
+const SPEC_ROWS = [
+  { icon: Flame, label: 'Weight', value: '500gsm / 380gsm' },
+  { icon: Scissors, label: 'Finish', value: 'Chain-stitch ready' },
+  { icon: Ruler, label: 'Fit', value: 'Dropped shoulder, relaxed' },
+  { icon: Award, label: 'Made in', value: 'Portugal · Finished in NY' },
+]
+
 export default async function ProductPage({
   params,
 }: {
@@ -96,13 +127,14 @@ export default async function ProductPage({
   }
 
   const variantExtensions = await getVariantExtensions(product.id)
+  const companionProduct = await getCompanionProduct(product.id)
 
   const allImages = [
     ...(product.thumbnail ? [{ url: product.thumbnail }] : []),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...(product.images || []).filter((img: any) => img.url !== product.thumbnail),
   ]
 
-  // Use placeholder if no images
   const displayImages = allImages.length > 0
     ? allImages
     : [{ url: getProductPlaceholder(product.id) }]
@@ -112,7 +144,7 @@ export default async function ProductPage({
       {/* Breadcrumbs */}
       <div className="border-b">
         <div className="container-custom py-3">
-          <nav className="flex items-center gap-2 text-xs text-muted-foreground">
+          <nav className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">
             <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
             <ChevronRight className="h-3 w-3" />
             <Link href="/products" className="hover:text-foreground transition-colors">Shop</Link>
@@ -122,11 +154,11 @@ export default async function ProductPage({
         </div>
       </div>
 
-      <div className="container-custom py-8 lg:py-12">
-        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16">
-          {/* Product Images */}
+      <div className="container-custom py-6 lg:py-10">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16">
+          {/* ── Product Images ─────────────────────────────── */}
           <div className="space-y-3">
-            <div className="relative aspect-[3/4] overflow-hidden bg-muted rounded-sm">
+            <div className="relative aspect-[3/4] overflow-hidden bg-muted">
               <Image
                 src={displayImages[0].url}
                 alt={product.title}
@@ -135,14 +167,17 @@ export default async function ProductPage({
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover"
               />
+              <div className="absolute top-4 left-4 bg-foreground text-background px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em]">
+                Drop No.09
+              </div>
             </div>
 
             {displayImages.length > 1 && (
               <div className="grid grid-cols-4 gap-3">
-                {displayImages.slice(1, 5).map((image: any, idx: number) => (
+                {displayImages.slice(1, 5).map((image: { url: string }, idx: number) => (
                   <div
                     key={idx}
-                    className="relative aspect-[3/4] overflow-hidden bg-muted rounded-sm"
+                    className="relative aspect-[3/4] overflow-hidden bg-muted"
                   >
                     <Image
                       src={image.url}
@@ -155,18 +190,38 @@ export default async function ProductPage({
                 ))}
               </div>
             )}
+
+            {/* Spec strip */}
+            <div className="hidden lg:grid grid-cols-2 gap-px bg-border border border-border mt-6">
+              {SPEC_ROWS.map((s) => {
+                const Icon = s.icon
+                return (
+                  <div key={s.label} className="bg-background p-4 flex items-center gap-3">
+                    <Icon className="h-4 w-4 text-accent flex-shrink-0" strokeWidth={1.75} />
+                    <div className="min-w-0">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{s.label}</p>
+                      <p className="text-sm font-semibold truncate">{s.value}</p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </div>
 
-          {/* Product Info */}
+          {/* ── Product Info ───────────────────────────────── */}
           <div className="lg:sticky lg:top-24 lg:self-start space-y-6">
-            {/* Title & Subtitle */}
             <div>
               {product.subtitle && (
-                <p className="text-sm uppercase tracking-[0.15em] text-muted-foreground mb-2">
+                <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
                   {product.subtitle}
                 </p>
               )}
-              <h1 className="text-h2 font-heading font-semibold">{product.title}</h1>
+              <h1 className="text-h2 lg:text-h1 font-heading font-bold uppercase tracking-tight leading-[1.05]">
+                {product.title}
+              </h1>
+              <p className="text-sm text-muted-foreground mt-2">
+                Garment-dyed heavyweight fleece. Chain-stitch embroidery available.
+              </p>
             </div>
 
             <ProductViewTracker
@@ -177,26 +232,12 @@ export default async function ProductPage({
               value={product.variants?.[0]?.calculated_price?.calculated_amount ?? null}
             />
 
-            {/* Variant Selector + Price + Add to Cart (client component) */}
-            <ProductActions product={product} variantExtensions={variantExtensions} />
+            <ProductActions
+              product={product}
+              variantExtensions={variantExtensions}
+              companionProduct={companionProduct}
+            />
 
-            {/* Trust Signals */}
-            <div className="grid grid-cols-3 gap-4 py-6 border-t">
-              <div className="text-center">
-                <Truck className="h-5 w-5 mx-auto mb-1.5" strokeWidth={1.5} />
-                <p className="text-xs text-muted-foreground">Free Shipping</p>
-              </div>
-              <div className="text-center">
-                <RotateCcw className="h-5 w-5 mx-auto mb-1.5" strokeWidth={1.5} />
-                <p className="text-xs text-muted-foreground">30-Day Returns</p>
-              </div>
-              <div className="text-center">
-                <Shield className="h-5 w-5 mx-auto mb-1.5" strokeWidth={1.5} />
-                <p className="text-xs text-muted-foreground">Secure Checkout</p>
-              </div>
-            </div>
-
-            {/* Accordion Sections */}
             <ProductAccordion
               description={product.description}
               details={product.metadata as Record<string, string> | undefined}

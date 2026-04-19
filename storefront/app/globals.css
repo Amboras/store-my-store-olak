@@ -4,35 +4,32 @@
 
 @layer base {
   :root {
-    --background: 40 20% 98%;
-    --foreground: 0 0% 10%;
-    --muted: 40 10% 94%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 35 40% 50%;
-    --accent-foreground: 0 0% 100%;
-    --border: 40 10% 88%;
-    --ring: 35 40% 50%;
-    --primary: 0 0% 10%;
-    --primary-foreground: 0 0% 98%;
-    --destructive: 0 72% 51%;
+    /* THREADHAUS — warm, heavyweight, streetwear-heritage palette */
+    --background: 36 24% 96%;        /* warm bone */
+    --foreground: 20 14% 10%;        /* near-black espresso */
+    --muted: 34 16% 90%;
+    --muted-foreground: 20 8% 38%;
+    --accent: 18 68% 44%;            /* burnt sienna */
+    --accent-foreground: 36 24% 96%;
+    --border: 30 12% 82%;
+    --ring: 18 68% 44%;
+    --primary: 20 14% 10%;
+    --primary-foreground: 36 24% 96%;
+    --destructive: 0 72% 46%;
     --destructive-foreground: 0 0% 98%;
-
-    /* Brand colors (dynamically injected from Store.metadata.brand) */
-    /* Access in CSS: var(--brand-primary), var(--brand-secondary) */
-    /* Managed by BrandStyleInjector component */
   }
 
   .dark {
-    --background: 0 0% 6%;
-    --foreground: 40 20% 94%;
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 55%;
-    --accent: 35 45% 55%;
-    --accent-foreground: 0 0% 100%;
-    --border: 0 0% 16%;
-    --ring: 35 45% 55%;
-    --primary: 40 20% 94%;
-    --primary-foreground: 0 0% 6%;
+    --background: 20 14% 8%;
+    --foreground: 36 20% 94%;
+    --muted: 20 10% 14%;
+    --muted-foreground: 30 8% 60%;
+    --accent: 18 72% 52%;
+    --accent-foreground: 20 14% 8%;
+    --border: 20 10% 18%;
+    --ring: 18 72% 52%;
+    --primary: 36 20% 94%;
+    --primary-foreground: 20 14% 8%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
   }
@@ -72,17 +69,17 @@
     @apply w-full;
   }
 
-  /* Brand color utilities - uses colors from Store.metadata.brand */
+  /* Brand color utilities */
   .btn-brand-primary {
-    background-color: var(--brand-primary, hsl(var(--primary)));
-    color: white;
+    background-color: var(--brand-primary, hsl(var(--foreground)));
+    color: hsl(var(--background));
   }
   .btn-brand-primary:hover {
     opacity: 0.9;
   }
 
   .text-brand-primary {
-    color: var(--brand-primary, hsl(var(--primary)));
+    color: var(--brand-primary, hsl(var(--foreground)));
   }
 
   .text-brand-secondary {
@@ -90,15 +87,31 @@
   }
 
   .border-brand-primary {
-    border-color: var(--brand-primary, hsl(var(--border)));
+    border-color: var(--brand-primary, hsl(var(--foreground)));
   }
 
   .bg-brand-primary {
-    background-color: var(--brand-primary, hsl(var(--primary)));
+    background-color: var(--brand-primary, hsl(var(--foreground)));
   }
 
   .bg-brand-secondary {
     background-color: var(--brand-secondary, hsl(var(--accent)));
+  }
+
+  /* Threadhaus utilities */
+  .marquee-track {
+    animation: marquee 40s linear infinite;
+  }
+
+  .grain-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(hsl(var(--foreground) / 0.06) 1px, transparent 1px);
+    background-size: 3px 3px;
+    opacity: 0.35;
+    mix-blend-mode: multiply;
   }
 }
 
@@ -117,7 +130,7 @@ html {
   @apply outline-2 outline-offset-2 outline-ring;
 }
 
-/* Cookie consent animation */
+/* Animations */
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -131,4 +144,9 @@ html {
 
 .animate-fade-in {
   animation: fade-in 0.3s ease-out;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }

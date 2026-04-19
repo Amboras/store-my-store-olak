@@ -30,10 +30,10 @@ const body = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Store — Modern Commerce',
-    template: '%s | Store',
+    default: 'Threadhaus — Custom Heavyweight Hoodies & Sweatshirts',
+    template: '%s | Threadhaus',
   },
-  description: 'Discover curated products crafted with care. A modern ecommerce experience.',
+  description: 'Heavyweight hoodies & sweatshirts, built to be customised. Garment-dyed, 500gsm fleece, stitched to last.',
 }
 
 export default function RootLayout({
